@@ -78,7 +78,7 @@ module Reak
       end
 
       rule :class_body do
-        `(` >> (class_header >> class_body).repeat >> separator? >> category.repeat >> separator? >> `)`
+        `(` >> separator? >> (class_header >> class_body).repeat >> separator? >> category.repeat >> separator? >> `)`
       end
 
       rule :class_definition do

@@ -118,6 +118,7 @@ describe Reak::Parser::Newspeak do
       subject { @parser.file_out }
       it { should parse(file_out) }
       it { should parse(File.read(File.expand_path('../file_out.ns2', __FILE__))) }
+      it { should parse(File.read(File.expand_path('../nested_file_out.ns2', __FILE__))) }
     end
   end
 end

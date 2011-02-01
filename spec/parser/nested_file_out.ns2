@@ -1,0 +1,77 @@
+Newsqueak2
+'NS2Java'
+
+class ASCIIArt on: platform = NewspeakObject (
+"Describe the class in this comment."
+|
+	Console = platform Transcript.
+	
+	Return = platform Character cr asString.
+|
+
+platform Transcript cr; show: 'THIS WORKS!'; show: 1 + 1.
+)
+(
+
+class Typesettable = (
+)
+('as yet unclassified'
+heading: aBlock = (
+	^ (line: 2), aBlock value, (line: 2).
+)
+
+text: aBlock = (
+	^ print: aBlock value.
+)
+
+'actions'
+section: aBlock = (
+	^ Return, (rectangleWithContent: aBlock value).
+)
+
+)'as yet unclassified'
+line: length = (
+	| output = ''. |
+	output: ''.
+	length timesRepeat: [output: output, '#'].
+	^ output
+)
+
+print: aString = (
+	^ aString
+)
+
+rectangle: aPoint = (
+	| output = ''. |
+	aPoint x timesRepeat: [output: output, '#'].
+	output: output, '####', Return.
+	aPoint y timesRepeat: [
+		output: output, '#'.
+		aPoint x timesRepeat: [output: output, ' '].
+		output: output, '#', Return].
+	aPoint x timesRepeat: [output: output, '#'].
+	output: output, '####', Return.
+	^ output
+)
+
+rectangleWithContent: content = (
+	| length height output |
+	output: ''.
+	length: 0.
+	content linesDo: [:line | line size > length ifTrue: [length: line size]].
+	length timesRepeat: [output: output, '#'].
+	output: output, '####', Return.
+	content linesDo: [:line || lengthDifference |
+		lengthDifference: length - line size.
+		output: output, '# '.
+		(lengthDifference / 2) floor timesRepeat: [output: output, ' '].
+		output: output, line.
+		(lengthDifference / 2) ceiling timesRepeat: [output: output, ' '].
+		output: output, ' #'.
+		output: output, Return].
+	length timesRepeat: [output: output, '#'].
+	output: output, '####', Return.
+	^ output
+)
+
+)
