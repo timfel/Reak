@@ -63,7 +63,7 @@ module Reak
       end
 
       rule :file_out do
-        str(FormatVersion) >> newline >> capital_identifier >> newline >> class_definition
+        str(FormatVersion) >> newline >> string >> newline >> class_definition
       end
     end
   end

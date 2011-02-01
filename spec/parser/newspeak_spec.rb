@@ -66,13 +66,22 @@ describe Reak::Parser::Newspeak do
       )") }
   end
 
-  describe "class_definition" do
+  describe "classes" do
     header = "class Test on: platform = Object (|bar instVar = foo.|)"
     cat_body = "'cat1'\nass = (^ a)\nbass = (^ b)\n'cat2'\narr = (^ 1)"
     nested_class = "#{header}(#{cat_body})"
     outer_class = "#{header}(#{nested_class}#{cat_body})"
-    subject { @parser.class_definition }
-    it { should parse(nested_class) }
-    it { should parse(outer_class) }
+    file_out = "Newsqueak2\n'Category'\n#{outer_class}"
+
+    describe "class_definition" do
+      subject { @parser.class_definition }
+      it { should parse(nested_class) }
+      it { should parse(outer_class) }
+    end
+
+    describe "file_out" do
+      subject { @parser.file_out }
+      it { should parse(file_out) }
+    end
   end
 end
