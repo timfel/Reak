@@ -25,6 +25,8 @@ module Reak
     autoload :AnsiSmalltalk,  'reak/parser/ansi_smalltalk'
     autoload :Smalltalk80,    'reak/parser/smalltalk80'
     autoload :GnuSmalltalk,   'reak/parser/gnu_smalltalk'
+    autoload :Squeak,         'reak/parser/squeak'
+    autoload :Newspeak,       'reak/parser/newspeak'
     autoload :ReakSmalltalk,  'reak/parser/reak_smalltalk'
     autoload :Transformer,    'reak/parser/transformer'
 
