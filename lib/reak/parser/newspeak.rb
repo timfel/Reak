@@ -8,6 +8,29 @@ module Reak
         @transformer.apply file_out.parse(code)
       end
 
+      alias squeak_keyword_expression keyword_expression
+      rule :keyword_expression do
+        (binary_object.maybe.as(:on) >> keyword_send.as(:send).with(:type => :direct)).as(:call)
+      end
+
+      alias squeak_binary_expression binary_expression
+      rule :binary_expression do
+        (unary_object.maybe.as(:on) >> (separator? >> binary_send).repeat(1).as(:send).with(:type => :chain)).as(:call)
+      end
+
+      alias squeak_unary_expression unary_expression
+      rule :unary_expression do
+        (primary.maybe.as(:on) >> (separator? >> unary_send).repeat(1).as(:send).with(:type => :chain)).as(:call)
+      end
+
+      rule :unary_object do
+        unary_expression | primary
+      end
+
+      rule :primary do
+        literal | block | brace_expression | (`(` >> expression >> `)`)
+      end
+
       rule :newline do
         (`\r\n` | `\n` | `\r`)
       end
@@ -39,23 +62,23 @@ module Reak
       end
 
       rule :category do
-        string >> newline >> separator? >> (method >> separator?).repeat
+        string >> newline >> separator? >> (method >> separator?).repeat(1)
       end
 
       rule :class_assignment do
-        separator? >> `=` >> separator? >> capital_identifier.maybe >> ns_method_block
+        separator? >> `=` >> separator? >> capital_identifier.maybe.as(:superclass) >> ns_method_block
       end
 
       rule :class_initializer do
-        keyword_method_header.maybe >> class_assignment
+        keyword_method_header.maybe.as(:primary_factory) >> class_assignment
       end
 
       rule :class_header do
-        `class` >> separator >> capital_identifier >> separator >> class_initializer
+        `class` >> separator >> capital_identifier.as(:class_name) >> separator >> class_initializer
       end
 
       rule :class_body do
-        `(` >> (class_header >> class_body).maybe >> category.repeat >> `)`
+        `(` >> (class_header >> class_body).repeat >> separator? >> category.repeat >> separator? >> `)`
       end
 
       rule :class_definition do
@@ -63,7 +86,7 @@ module Reak
       end
 
       rule :file_out do
-        str(FormatVersion) >> newline >> string >> newline >> class_definition
+        str(FormatVersion) >> newline.repeat(1) >> string >> newline.repeat(1) >> class_definition >> separator?
       end
     end
   end

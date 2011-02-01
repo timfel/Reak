@@ -3,6 +3,13 @@ require File.expand_path('../../spec_helper', __FILE__)
 describe Reak::Parser::Newspeak do
   before { @parser = Reak::Parser::Newspeak.new }
 
+  describe "newlines" do
+    subject { @parser.newline }
+    it { should parse("\r\n") }
+    it { should parse("\n") }
+    it { should parse("\r") }
+  end
+
   describe "locals" do
     subject { @parser.locals }
     it { should parse("| foo |") }
@@ -11,10 +18,35 @@ describe Reak::Parser::Newspeak do
     it { should_not parse("| foo = code |") }
   end
 
-  describe "expression" do
-    subject { @parser.expression }
-    it { should_not parse("foo := bar") }
-    it { should_not parse("foo _ bar") }
+  describe "assignment" do
+    subject { @parser.assignment }
+    it { should parse("foo =") }
+    it { should_not parse("foo :=") }
+    it { should_not parse("foo _") }
+  end
+
+  describe "unary expression" do
+    subject { @parser.unary_expression }
+    it { should parse("foo") }
+    it { should parse("foo bar") }
+    it { should parse("(foo bar) baz") }
+  end
+
+  describe "binary expression" do
+    subject { @parser.binary_expression }
+    it { should parse("+ 2") }
+    it { should parse("1 + 2") }
+    it { should parse("1 + 2 + 3") }
+    it { should parse("(1 + 2) + 3") }
+  end
+
+  describe "keyword expression" do
+    subject { @parser.keyword_expression }
+    it { should parse("test: argument") }
+    it { should parse("test: arg1 with: arg2") }
+    it { should parse("test: 1 + 2 with: 3 + 4") }
+    it { should parse("test: foo bar with: 3 + 4") }
+    it { should parse("self test: foo bar with: 3 + 4") }
   end
 
   describe "method" do
@@ -22,6 +54,9 @@ describe Reak::Parser::Newspeak do
     it { should parse("foo = ( ^ code )") }
     it { should parse("foo: a = ( ^ code )") }
     it { should parse("~= a = ( ^ code )") }
+    it { should parse("div: aBlock = (
+      ^ rectangleWithContent: aBlock value.
+    )")}
   end
 
   describe "class_header" do
@@ -71,7 +106,7 @@ describe Reak::Parser::Newspeak do
     cat_body = "'cat1'\nass = (^ a)\nbass = (^ b)\n'cat2'\narr = (^ 1)"
     nested_class = "#{header}(#{cat_body})"
     outer_class = "#{header}(#{nested_class}#{cat_body})"
-    file_out = "Newsqueak2\n'Category'\n#{outer_class}"
+    file_out = "Newsqueak2\r\n'Category'\r\n#{outer_class}"
 
     describe "class_definition" do
       subject { @parser.class_definition }
@@ -82,6 +117,7 @@ describe Reak::Parser::Newspeak do
     describe "file_out" do
       subject { @parser.file_out }
       it { should parse(file_out) }
+      it { should parse(File.read(File.expand_path('../file_out.ns2', __FILE__))) }
     end
   end
 end
