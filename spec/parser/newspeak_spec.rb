@@ -46,18 +46,33 @@ describe Reak::Parser::Newspeak do
 
   describe "category" do
     subject { @parser.category }
-    it { should parse("('a category'
+    it { should parse("'a category'
       method = (
         ^ code.
-      )
-    )") }
-    it { should parse("('a category'
+      )") }
+    it { should parse("'a category'
       method = (
         ^ code.
       )
       method2: arg = (
         ^ code.
-      )
-    )") }
+      )") }
+    it { subject.repeat.should parse("'a category'
+      method = (
+        ^ code.
+      )'another category'
+      method2: arg = (
+        ^ code.
+      )") }
+  end
+
+  describe "class_definition" do
+    header = "class Test on: platform = Object (|bar instVar = foo.|)"
+    cat_body = "'cat1'\nass = (^ a)\nbass = (^ b)\n'cat2'\narr = (^ 1)"
+    nested_class = "#{header}(#{cat_body})"
+    outer_class = "#{header}(#{nested_class}#{cat_body})"
+    subject { @parser.class_definition }
+    it { should parse(nested_class) }
+    it { should parse(outer_class) }
   end
 end

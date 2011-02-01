@@ -2,6 +2,16 @@ module Reak
   module Parser
     class Newspeak < Squeak
 
+      FormatVersion = "Newsqueak2"
+
+      def parse(code)
+        @transformer.apply file_out.parse(code)
+      end
+
+      rule :newline do
+        (`\r\n` | `\n` | `\r`)
+      end
+
       rule :assignment do
         variable_name >> separator? >> (`=`)
       end
@@ -28,6 +38,10 @@ module Reak
         method_header >> ns_method_assignment
       end
 
+      rule :category do
+        string >> newline >> separator? >> (method >> separator?).repeat
+      end
+
       rule :class_assignment do
         separator? >> `=` >> separator? >> capital_identifier.maybe >> ns_method_block
       end
@@ -40,8 +54,16 @@ module Reak
         `class` >> separator >> capital_identifier >> separator >> class_initializer
       end
 
-      rule :category do
-        `(` >> string >> separator >> (method >> separator?).repeat >> `)`
+      rule :class_body do
+        `(` >> (class_header >> class_body).maybe >> category.repeat >> `)`
+      end
+
+      rule :class_definition do
+        class_header >> class_body
+      end
+
+      rule :file_out do
+        str(FormatVersion) >> newline >> capital_identifier >> newline >> class_definition
       end
     end
   end
