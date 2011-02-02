@@ -41,7 +41,7 @@ module Reak
       SCOPES = { :lvar => :lasgn }
 
       def initialize(var, value, scope = :lvar)
-        @name  = var.name
+        @name  = var.respond_to? :to_str ? var : var.name
         @value = value
         @scope = scope
       end
@@ -52,6 +52,10 @@ module Reak
 
       def to_sexp
         [asgn_scope, name, value.to_sexp]
+      end
+
+      def accept(visitor)
+        visitor.visit_assignment(name, value)
       end
     end
   end

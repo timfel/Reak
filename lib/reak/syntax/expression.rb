@@ -20,6 +20,10 @@ module Reak
         [:expr].concat @expressions.map { |e| e.to_sexp }
       end
 
+      def accept(visitor)
+        @expressions.collect {|e| e.accept(visitor) }.join("\n")
+      end
+
       def visit(visitor)
         expressions.each do |exp|
           exp.visit visitor

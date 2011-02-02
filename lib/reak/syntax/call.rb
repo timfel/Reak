@@ -37,6 +37,10 @@ module Reak
         reciever.visit visitor
         message.visit visitor
       end
+
+      def accept(visitor)
+        visitor.visit_call(reciever, message)
+      end
     end
 
     class SuperCall < Call

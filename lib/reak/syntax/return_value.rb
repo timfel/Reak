@@ -14,6 +14,10 @@ module Reak
       def visit(visitor)
         visitor.return expression
       end
+
+      def accept(visitor)
+        visitor.visit_return(expression)
+      end
     end
   end
 end

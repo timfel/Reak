@@ -9,6 +9,10 @@ module Reak
         @locals = Array(locals)
         @body = body
       end
+
+      def accept(visitor)
+        visitor.visit_method(selector, parameters, locals || [], body)
+      end
     end
   end
 end

@@ -41,7 +41,7 @@ module Reak
         [:lit, @value]
       end
 
-      def visit(visitor)
+      def visitor(visitor)
         visitor.literal self
       end
 
@@ -57,8 +57,8 @@ module Reak
         super nil
       end
 
-      def visit(visitor)
-        visitor.nil_kind self
+      def accept(visitor)
+        "null"
       end
     end
 
@@ -147,7 +147,7 @@ module Reak
         super value.to_s
       end
     end
-    
+
     class ScaledDecimal < Literal
       attr_accessor :scale
 

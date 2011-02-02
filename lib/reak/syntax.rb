@@ -3,6 +3,7 @@ module Reak
     autoload :Node,           'reak/syntax/node'
     autoload :Body,           'reak/syntax/body'
     autoload :ClassHeader,    'reak/syntax/class'
+    autoload :ClassFactory,   'reak/syntax/class'
     autoload :ClassBody,      'reak/syntax/class'
     autoload :Class,          'reak/syntax/class'
     autoload :Method,         'reak/syntax/method'

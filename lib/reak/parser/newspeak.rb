@@ -142,15 +142,24 @@ module Reak
 
         rule :superclass => simple(:sc), :locals => simple(:slots), :class_name => simple(:name),
                                     :primary_factory => sequence(:keys), :code => simple(:block) do
-          klass = Reak::Syntax::ClassHeader.new(name, sc, slots)
           message = Reak::Syntax::Message.new ""
           keys.each do |key|
             message.selector << key.key
             message.args << key.arg
           end
-          message
-          klass.primary_factory = { message => block }
-          klass
+          factory = Reak::Syntax::ClassFactory.new(message, slots, block)
+          Reak::Syntax::ClassHeader.new(name, sc, factory)
+        end
+
+        rule :superclass => simple(:sc), :locals => sequence(:slots), :class_name => simple(:name),
+                                    :primary_factory => sequence(:keys), :code => simple(:block) do
+          message = Reak::Syntax::Message.new ""
+          keys.each do |key|
+            message.selector << key.key
+            message.args << key.arg
+          end
+          factory = Reak::Syntax::ClassFactory.new(message, slots, block)
+          Reak::Syntax::ClassHeader.new(name, sc, factory)
         end
 
         rule :keyword => simple(:kw), :locals => simple(:vars), :var => simple(:param), :code => simple(:block) do
@@ -178,15 +187,117 @@ module Reak
         end
       end
 
-      FormatVersion = "Newsqueak2"
+      class NewspeakJVMVisitor
+        attr_accessor :package, :klass
 
-      class ::File
-        alias :"old_push" :"<<"
-        def << str
-          old_push(str)
-          old_push("\n")
+        def initialize(outer_class = nil, outer_package = nil)
+          @outer_class = outer_class
+          @outer_package = outer_package
+        end
+
+        def visit_class(category, name, superclass, factory, methods, nested_classes)
+          @package = "#{@outer_package || category}/#{name}"
+          @klass = name
+          FileUtils.mkdir_p(@package)
+          @file = File.open("#{@package}/#{name}.java", 'w')
+          @cfile = File.open("#{@package}/#{name}Class.java", 'w')
+
+          @cfile << <<-JAVA
+package #{@package.gsub("/", ".")};
+
+public class #{name}Class extends NewspeakClass {
+  static final String superclassName = "#{superclass || 'Object'}";
+  static final NewspeakClass outerClass = #{@outer_class || 'null'};
+
+  public #{name}Class(NewspeakObject scope) { super(scope); }
+  public #{name} neu() { return new #{name}(this); }
+
+  // Primary factory
+  #{factory.accept(self)}
+
+  // TODO: class side methods
+}
+JAVA
+          @cfile.close
+
+          @file << <<-JAVA
+package #{@package.gsub("/", ".")};
+
+public class #{name} extends NewspeakObject {
+  public #{name}(NewspeakClass klass) { super(klass); }
+
+  // Methods
+  #{methods.collect {|m| m.accept(self) }.join("\n")}
+
+  // Nested classes
+  #{nested_classes.collect {|c| c.accept(self)}.join("\n")}
+}
+JAVA
+          @file.close
+        end
+
+        def visit_method(selector, arguments, locals, body, retval = "NewspeakObject")
+          <<-JAVA
+  public #{retval} #{selector.gsub(":", "_")}(#{arguments.join(", ")}) {
+    #{locals.collect {|l| l.accept(self) }.join(" ")}
+    #{body.accept(self)};
+  }
+JAVA
+        end
+
+        def visit_factory(klassname, selector, arguments, ivars, body)
+          ivarSets = ivars.collect do |ivar|
+            if ivar.respond_to? :to_str
+              %{__new_instance.instVarSet("#{ivar.to_str}", null);}
+            else
+              "__new_instance.#{ivar.accept(self)};"
+            end
+          end
+          <<-JAVA
+public #{klassname} #{selector.gsub(":", "_")}(#{arguments.join(", ")}) {
+    #{klassname} __new_instance = this.neu();
+    #{ivarSets.join(" ")}
+    #{body.accept(self)};
+    return __new_instance;
+  }
+JAVA
+        end
+
+        def visit_assignment(name, value)
+          %{instVarSet("#{name}", (#{value.accept(self)}))}
+        end
+
+        # Returns a method to an inner class instance
+        def visit_class_method(name)
+          <<-JAVA
+  public NewspeakObject #{name}() { return new #{name}(this); }
+JAVA
+        end
+
+        def visit_return(expression)
+          "return (#{expression.accept(self)});"
+        end
+
+        def visit_call(recv, msg)
+          if recv
+            "call(#{msg.accept(self)})"
+          else
+            "implicitCall(#{msg.accept(self)})"
+          end
+        end
+
+        def visit_message(selector, arguments)
+          argsList = arguments.collect {|a| "(#{a.accept(self)})" }.join(", ")
+          [%{"#{selector.gsub(":", "_")}"}, *argsList].join(", ")
+        end
+
+        def visit(node)
+          puts "Missing an accept() implementation for #{node.class}"
+          node.inspect
         end
       end
+
+      FormatVersion = "Newsqueak2"
 
       def initialize
         super
@@ -194,35 +305,10 @@ module Reak
       end
 
       def compile(code)
-        result = file_out.parse(code)
-        compileClass(result)
-      end
-
-      def compile_class(klass)
-        package = "#{klass.category}/#{klass.name}"
-
-        FileUtils.mkdir_p(package)
-        file = File.open("#{package}/#{klass.name}.java", 'w')
-        file << "package #{package.gsub("/", ".")};" <<
-          "public class #{klass.name} extends NewspeakObject {" <<
-          "public #{klass.name}(NewspeakClass klass) { super(klass); }" <<
-            "// TODO: instance methods" <<
-          "}"
-        file.close
-
-        file = File.open("#{package}/#{klass.name}Class.java", 'w')
-        primary_factory = klass.primary_factory
-        primary_factory_name = primary_factory.collect {|h| h[:keyword] }.join("").gsub(":", "_")
-        primary_factory_args = primary_factory.collect {|h| "NewspeakObject #{h[:var]}" }.join(", ")
-        file << "package #{package.gsub("/", ".")};" <<
-          "public #{class_name}Class extends NewspeakClass {" <<
-            "public TheWorldClass(NewspeakObject scope) { super(scope); }" <<
-            "public TheWorld neu() { return new TheWorld(this); }" <<
-            "public #{class_name} #{primary_factory_name}(#{primary_factory_args}) {" <<
-              "// TODO: method" <<
-            "}" <<
-          "}"
-        file.close
+        result = parse(code)
+        pp result
+        visitor = NewspeakJVMVisitor.new
+        result.accept(visitor)
       end
 
       def parse(code)

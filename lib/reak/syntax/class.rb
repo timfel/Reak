@@ -3,12 +3,13 @@ require 'forwardable'
 module Reak
   module Syntax
     class ClassHeader < Node
-      attr_accessor :instance_variables, :superclass, :name, :primary_factory
+      attr_accessor :superclass, :name, :factory
 
-      def initialize(name, superclass, ivars)
+      def initialize(name, superclass, factory)
         @name = name
         @superclass = superclass
-        @instance_variables = Array(ivars)
+        @factory = factory
+        factory.header = self
       end
     end
 
@@ -17,7 +18,12 @@ module Reak
 
       def initialize(categories, nested_classes)
         @categories = Array(categories)
-        @nested_classes = Array(nested_classes)
+        if nested_classes
+          nested_classes = Array(nested_classes)
+          # NestedClass.new()
+        else
+          @nested_classes = []
+        end
       end
 
       def methods
@@ -26,6 +32,7 @@ module Reak
     end
 
     class Class < Node
+      extend Forwardable
       attr_accessor :category, :header, :body, :outer
 
       def initialize(category, header, body, outer = nil)
@@ -35,8 +42,44 @@ module Reak
         @outer = outer
       end
 
-      def_delegator :@header, :name, :superclass, :primary_factory, :instance_variables
-      def_delegator :@body, :methods, :nested_classes
+      def_delegators :@header, :name, :superclass, :factory, :instance_variables
+      def_delegators :@body, :methods, :nested_classes
+
+      def accept(visitor)
+        visitor.visit_class(category.value, name, superclass, factory, methods, nested_classes)
+      end
+    end
+
+    class NestedClass < Node
+      def initialize(klass)
+        @klass = klass
+      end
+
+      def accept(visitor)
+        nested_visitor = visitor.class.new(visitor.klass, visitor.package)
+        @klass.accept(nested_visitor)
+        visitor.visit_class_method(klass.name)
+      end
+    end
+
+    class ClassFactory < Node
+      extend Forwardable
+      attr_accessor :message, :locals, :body, :header
+
+      def initialize(message, locals, body)
+        @message = message
+        @locals = locals
+        @body = body
+        if locals and body.respond_to? :statements
+          body.statements += locals
+        end
+      end
+
+      def accept(visitor)
+        visitor.visit_factory(header.name, selector, args, locals || [], body)
+      end
+
+      def_delegators :@message, :selector, :args
     end
   end
 end

@@ -20,6 +20,10 @@ module Reak
         args.each { |a| a.visit visitor }
         visitor.call_method self
       end
+
+      def accept(visitor)
+        visitor.visit_message(selector, args)
+      end
     end
 
     class MessageKey < Message
