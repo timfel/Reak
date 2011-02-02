@@ -2,6 +2,11 @@ module Reak
   module Syntax
     autoload :Node,           'reak/syntax/node'
     autoload :Body,           'reak/syntax/body'
+    autoload :ClassHeader,    'reak/syntax/class'
+    autoload :ClassBody,      'reak/syntax/class'
+    autoload :Class,          'reak/syntax/class'
+    autoload :Method,         'reak/syntax/method'
+    autoload :Category,       'reak/syntax/category'
     autoload :Closure,        'reak/syntax/closure'
     autoload :Literal,        'reak/syntax/literal'
     autoload :NilKind,        'reak/syntax/literal'

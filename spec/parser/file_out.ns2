@@ -1,24 +1,9 @@
 Newsqueak2
 'NS2Java-nested'
 
-class Typesettable = (
-)
-(class Typesettable = (
+class Typesettable on: platform with: library = Object (
 )
 ('as yet unclassified'
-div: aBlock = (
-	^ rectangleWithContent: aBlock value.
-)
-
-span: aBlock = (
-	^ (line: 2), aBlock value, (line: 2).
-)
-
-text: aBlock = (
-	^ print: aBlock value.
-)
-
-)'as yet unclassified'
 div: aBlock = (
 	^ rectangleWithContent: aBlock value.
 )
