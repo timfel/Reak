@@ -10,7 +10,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'reak'
 require 'pp'
 
-ast, sexp, bench, syntax, show_tree, evals = false, false, false, :reak, false, []
+ast, sexp, bench, syntax, show_tree, compile, evals = false, false, false, :reak, false, false, []
 
 options = Rubinius::Options.new "Usage: #$0 [options] [script]", 20
 
@@ -38,6 +38,10 @@ options.on "-T", "Show parse result (use this if -A fails)" do
   show_tree = true
 end
 
+options.on "-c", "Compile" do
+  compile = true
+end
+
 options.on "-h", "--help", "Display this help" do
   puts options
   exit 0
@@ -48,6 +52,12 @@ file = options.parse(ARGV).first
 display = proc do |code|
   tree = nil
   parser = Reak::Parser.new(syntax)
+
+  if (compile)
+    parser.compile(code)
+    return
+  end
+
   if bench
     require 'benchmark'
     Benchmark.bmbm do |x|

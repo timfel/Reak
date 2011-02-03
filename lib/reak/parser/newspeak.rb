@@ -170,7 +170,7 @@ module Reak
           Reak::Syntax::Category.new(category_name, ms)
         end
 
-        rule :categories => sequence(:cats), :nested_classes => sequence(:nets) do
+        rule :categories => sequence(:cats), :nested_classes => subtree(:nets) do
           Reak::Syntax::ClassBody.new(cats, nets)
         end
 
@@ -178,7 +178,11 @@ module Reak
           Reak::Syntax::ClassBody.new(cats, nets)
         end
 
-        rule :categories => simple(:cats), :nested_classes => sequence(:nets) do
+        rule :categories => simple(:cats), :nested_classes => subtree(:nets) do
+          Reak::Syntax::ClassBody.new(cats, nets)
+        end
+
+        rule :categories => simple(:cats), :nested_classes => simple(:nets) do
           Reak::Syntax::ClassBody.new(cats, nets)
         end
 

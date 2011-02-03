@@ -32,9 +32,10 @@ module Reak
 
     def self.new(syntax = :reak, *args)
       case syntax.to_sym
-      when :ansi      then AnsiSmalltalk.new(*args)
-      when :reak, nil then ReakSmalltalk.new(*args)
-      when :gst, :gnu then GnuSmalltalk.new(*args)
+      when :ansi          then AnsiSmalltalk.new(*args)
+      when :reak, nil     then ReakSmalltalk.new(*args)
+      when :gst, :gnu     then GnuSmalltalk.new(*args)
+      when :newspeak, :ns then Newspeak.new(*args)
       else fail "unkown syntax #{syntax.inspect}"
       end
     end

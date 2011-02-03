@@ -20,7 +20,9 @@ module Reak
         @categories = Array(categories)
         if nested_classes
           nested_classes = Array(nested_classes)
-          # NestedClass.new()
+          @nested_classes = nested_classes.collect do
+            |c| Class.new(c)
+          end
         else
           @nested_classes = []
         end
@@ -46,7 +48,7 @@ module Reak
       def_delegators :@body, :methods, :nested_classes
 
       def accept(visitor)
-        visitor.visit_class(category.value, name, superclass, factory, methods, nested_classes)
+        visitor.visit_class(category.value, name, superclass, factory, methods || [], nested_classes || [])
       end
     end
 
