@@ -1,5 +1,4 @@
 GEM
-  remote: http://rubygems.org/
   specs:
     backports (1.18.2)
     blankslate (2.1.2.3)
@@ -8,8 +7,12 @@ GEM
       rspec (~> 2.0)
       rspec-instafail (~> 0.1.4)
       ruby-progressbar (~> 0.0.9)
+    method_source (0.2.0)
     parslet (1.1.1)
       blankslate (~> 2.0)
+    pry (0.4.6)
+      method_source (>= 0.2.0)
+      ruby_parser (>= 2.0.5)
     rspec (2.4.0)
       rspec-core (~> 2.4.0)
       rspec-expectations (~> 2.4.0)
@@ -20,6 +23,9 @@ GEM
     rspec-instafail (0.1.5)
     rspec-mocks (2.4.0)
     ruby-progressbar (0.0.9)
+    ruby_parser (2.0.5)
+      sexp_processor (~> 3.0)
+    sexp_processor (3.0.5)
 
 PLATFORMS
   ruby
@@ -28,4 +34,5 @@ DEPENDENCIES
   backports
   fuubar
   parslet (~> 1.1)
+  pry
   rspec

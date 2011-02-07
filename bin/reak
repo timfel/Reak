@@ -54,7 +54,14 @@ display = proc do |code|
   parser = Reak::Parser.new(syntax)
 
   if (compile)
-    parser.compile(code)
+    begin
+      parser.compile(code)
+    rescue
+      require 'pry'
+      puts "see lvar tree"
+      tree = parser.parse(code)
+      binding.pry
+    end
     return
   end
 
