@@ -162,28 +162,16 @@ module Reak
           Reak::Syntax::ClassHeader.new(name, sc, factory)
         end
 
-        rule :keyword => simple(:kw), :locals => simple(:vars), :var => simple(:param), :code => simple(:block) do
-          Reak::Syntax::Method.new(kw, param, vars, block)
+        rule :header => simple(:header), :locals => simple(:locals), :code => simple(:code) do
+          Reak::Syntax::Method.new header.selector, header.args, locals, code
         end
 
         rule :name => simple(:category_name), :methods => sequence(:ms) do
           Reak::Syntax::Category.new(category_name, ms)
         end
 
-        rule :categories => sequence(:cats), :nested_classes => subtree(:nets) do
-          Reak::Syntax::ClassBody.new(cats, nets)
-        end
-
-        rule :categories => sequence(:cats), :nested_classes => simple(:nets) do
-          Reak::Syntax::ClassBody.new(cats, nets)
-        end
-
-        rule :categories => simple(:cats), :nested_classes => subtree(:nets) do
-          Reak::Syntax::ClassBody.new(cats, nets)
-        end
-
-        rule :categories => simple(:cats), :nested_classes => simple(:nets) do
-          Reak::Syntax::ClassBody.new(cats, nets)
+        rule :categories => sequence(:cats), :nested_classes => sequence(:nets) do
+           Reak::Syntax::ClassBody.new(cats, nets)
         end
 
         rule :class_category => simple(:pkg), :class_body => simple(:body), :class_header => simple(:header) do
@@ -347,7 +335,7 @@ JAVA
       end
 
       rule :assignment do
-        variable_name >> separator? >> (`=`)
+        variable_name >> separator? >> `=`
       end
 
       rule :expression do
@@ -369,7 +357,7 @@ JAVA
       end
 
       rule :method do
-        method_header >> ns_method_assignment
+        method_header.as(:send).with(:type => :keyword).as(:call).as(:header) >> ns_method_assignment
       end
 
       rule :category do

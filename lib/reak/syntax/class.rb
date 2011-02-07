@@ -44,7 +44,7 @@ module Reak
         @outer = outer
       end
 
-      def_delegators :@header, :name, :superclass, :factory, :instance_variables
+      def_delegators :@header, :name, :superclass, :factory
       def_delegators :@body, :methods, :nested_classes
 
       def accept(visitor)

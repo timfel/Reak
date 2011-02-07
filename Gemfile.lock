@@ -1,11 +1,3 @@
-GIT
-  remote: git://github.com/rkh/parslet.git
-  revision: 59f9303ed6bb0a10de42ae38b839b6b207dba160
-  branch: tuning-rbx
-  specs:
-    parslet (1.1.0)
-      blankslate (~> 2.0)
-
 GEM
   remote: http://rubygems.org/
   specs:
@@ -16,6 +8,8 @@ GEM
       rspec (~> 2.0)
       rspec-instafail (~> 0.1.4)
       ruby-progressbar (~> 0.0.9)
+    parslet (1.1.1)
+      blankslate (~> 2.0)
     rspec (2.4.0)
       rspec-core (~> 2.4.0)
       rspec-expectations (~> 2.4.0)
@@ -33,5 +27,5 @@ PLATFORMS
 DEPENDENCIES
   backports
   fuubar
-  parslet!
+  parslet (~> 1.1)
   rspec

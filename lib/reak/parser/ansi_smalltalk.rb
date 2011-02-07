@@ -270,7 +270,7 @@ module Reak
       end
 
       rule :keyword_method_header do
-        keyword_argument >> (separator? >> keyword_argument).repeat 
+        (separator? >> keyword_argument).repeat(1)
       end
 
       rule :keyword_argument do

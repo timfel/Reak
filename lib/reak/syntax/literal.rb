@@ -41,7 +41,11 @@ module Reak
         [:lit, @value]
       end
 
-      def visitor(visitor)
+      def accept(visitor)
+        value.inspect
+      end
+
+      def visit(visitor)
         visitor.literal self
       end
 

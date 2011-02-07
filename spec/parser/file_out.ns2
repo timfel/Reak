@@ -4,7 +4,7 @@ Newsqueak2
 class Typesettable on: platform with: library = Object (
 )
 ('as yet unclassified'
-div: aBlock = (
+div: aBlock id: aNumber = (
 	^ rectangleWithContent: aBlock value.
 )
 
