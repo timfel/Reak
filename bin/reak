@@ -57,6 +57,7 @@ display = proc do |code|
     begin
       parser.compile(code)
     rescue
+      $!.render
       require 'pry'
       puts "see lvar tree"
       tree = parser.parse(code)

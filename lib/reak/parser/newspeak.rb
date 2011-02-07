@@ -30,8 +30,8 @@ module Reak
           Reak::Syntax::Character.new(character)
         end
 
-        rule :string => simple(:value) do
-          Reak::Syntax::String.new value.gsub("''", "'")
+        rule :string => subtree(:value) do
+          Reak::Syntax::String.new value.to_s.gsub("''", "'")
         end
 
         rule :float => { :power => simple(:power), :base => simple(:base) } do
@@ -162,7 +162,25 @@ module Reak
           Reak::Syntax::ClassHeader.new(name, sc, factory)
         end
 
+        rule :superclass => simple(:sc), :locals => simple(:slots), :class_name => simple(:name),
+                                    :primary_factory => simple(:keys), :code => simple(:block) do
+          message = Reak::Syntax::Message.new ""
+          factory = Reak::Syntax::ClassFactory.new(message, slots, block)
+          Reak::Syntax::ClassHeader.new(name, sc, factory)
+        end
+
+        rule :superclass => simple(:sc), :locals => sequence(:slots), :class_name => simple(:name),
+                                    :primary_factory => simple(:keys), :code => simple(:block) do
+          message = Reak::Syntax::Message.new ""
+          factory = Reak::Syntax::ClassFactory.new(message, slots, block)
+          Reak::Syntax::ClassHeader.new(name, sc, factory)
+        end
+
         rule :header => simple(:header), :locals => simple(:locals), :code => simple(:code) do
+          Reak::Syntax::Method.new header.selector, header.args, locals, code
+        end
+
+        rule :header => simple(:header), :locals => sequence(:locals), :code => simple(:code) do
           Reak::Syntax::Method.new header.selector, header.args, locals, code
         end
 
@@ -177,6 +195,19 @@ module Reak
         rule :class_category => simple(:pkg), :class_body => simple(:body), :class_header => simple(:header) do
           Reak::Syntax::Class.new(pkg, header, body)
         end
+
+        rule :class_body => simple(:body), :class_header => simple(:header) do
+          # nested class, buddy
+          Reak::Syntax::Class.new(nil, header, body)
+        end
+
+        rule :assign => { :target => simple(:var), :value => simple(:value) } do
+          Reak::Syntax::Assign.new var, value
+        end
+      end
+
+      class ::String
+        def accept(*) self end
       end
 
       class NewspeakJVMVisitor
@@ -222,7 +253,7 @@ public class #{name} extends NewspeakObject {
   #{methods.collect {|m| m.accept(self) }.join("\n")}
 
   // Nested classes
-  #{nested_classes.collect {|c| c.accept(self)}.join("\n")}
+  #{nested_classes.collect {|c| c.accept(self) }.join("\n")}
 }
 JAVA
           @file.close
@@ -271,11 +302,14 @@ JAVA
         end
 
         def visit_call(recv, msg)
-          if recv
-            "call(#{msg.accept(self)})"
-          else
-            "implicitCall(#{msg.accept(self)})"
-          end
+          msgs = Array(msg)
+          msgs.map do |msg|
+            if recv
+              "call(#{msg.accept(self)})"
+            else
+              "implicitCall(#{msg.accept(self)})"
+            end
+          end.join '; '
         end
 
         def visit_message(selector, arguments)

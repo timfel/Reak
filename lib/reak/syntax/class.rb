@@ -18,14 +18,7 @@ module Reak
 
       def initialize(categories, nested_classes)
         @categories = Array(categories)
-        if nested_classes
-          nested_classes = Array(nested_classes)
-          @nested_classes = nested_classes.collect do
-            |c| Class.new(c)
-          end
-        else
-          @nested_classes = []
-        end
+        @nested_classes = Array(nested_classes).map { |c| NestedClass.new c }
       end
 
       def methods
@@ -48,11 +41,11 @@ module Reak
       def_delegators :@body, :methods, :nested_classes
 
       def accept(visitor)
-        visitor.visit_class(category.value, name, superclass, factory, methods || [], nested_classes || [])
+        visitor.visit_class((category.value if category), name, superclass, factory, methods || [], nested_classes || [])
       end
     end
 
-    class NestedClass < Node
+    class NestedClass < Class
       def initialize(klass)
         @klass = klass
       end
@@ -60,7 +53,7 @@ module Reak
       def accept(visitor)
         nested_visitor = visitor.class.new(visitor.klass, visitor.package)
         @klass.accept(nested_visitor)
-        visitor.visit_class_method(klass.name)
+        visitor.visit_class_method(@klass.name)
       end
     end
 

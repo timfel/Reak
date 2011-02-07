@@ -19,6 +19,10 @@ module Reak
       def to_sexp
         [:block, [:locals, *locals]].concat @statements.map { |s| s.to_sexp }
       end
+
+      def accept(visitor)
+        @statements.map { |xx| xx.accept(visitor) << ";\n" }.join
+      end
     end
   end
 end

@@ -16,6 +16,10 @@ module Reak
       def unclosure
         args.empty? ? @body.nested_unclosure : super
       end
+
+      def accept(visitor)
+        "{ #{@body.accept visitor} }"
+      end
     end
   end
 end
