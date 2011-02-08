@@ -124,6 +124,12 @@ module Reak
           message
         end
 
+        rule :call => { :type => :keyword, :send => simple(:key) } do
+          message = Reak::Syntax::Message.new ""
+          message.selector << key
+          message
+        end
+
         rule :call => { :type => :direct, :send => simple(:message), :on => simple(:on) } do
           Reak::Syntax::Call.new on, message
         end
@@ -280,7 +286,7 @@ JAVA
 public #{klassname} #{selector.gsub(":", "_")}(#{arguments.join(", ")}) {
     #{klassname} __new_instance = this.neu();
     #{ivarSets.join(" ")}
-    #{body.accept(self)};
+    #{body.accept(self) if body};
     return __new_instance;
   }
 JAVA
